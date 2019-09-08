@@ -16,7 +16,7 @@ class MainViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
     view.title.text = item?.title
     val thumbnail = Glide.with(view).load(item?.stillUrl)
     thumbnail.into(view.image)
-    view.image.setOnClickListener {
+    view.image.setOnClickListener { //  TODO Loading progress
       Glide.with(view).load(item?.url).thumbnail(thumbnail).into(view.image)
     }
   }

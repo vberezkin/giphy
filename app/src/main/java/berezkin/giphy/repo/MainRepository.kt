@@ -6,8 +6,8 @@ import androidx.paging.PagedList
 import androidx.paging.Config
 
 class MainRepository {
-  fun items(pageSize: Int): LiveData<PagedList<MainItem>> {
-    val factory = MainDataSourceFactory()
+  fun items(query: String, pageSize: Int): LiveData<PagedList<MainItem>> {
+    val factory = MainDataSourceFactory(query)
     return LivePagedListBuilder(factory, Config(pageSize, enablePlaceholders = false)).build()
   }
 }

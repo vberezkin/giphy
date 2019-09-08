@@ -16,4 +16,10 @@ class ExampleUnitTest {
     val resp = GiphyApi.instance.trending(100000,20).execute()
     assertEquals(4, 2 + 2)
   }
+
+  @Test
+  fun search() {
+    val resp = GiphyApi.instance.search("cat", 1000,20).execute()
+    assertEquals(4, 2 + 2)
+  }
 }

@@ -8,9 +8,13 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class MainDataSource : PositionalDataSource<MainItem>() {
-  override fun loadInitial(params: LoadInitialParams, callback: LoadInitialCallback<MainItem>) {
-    GiphyApi.instance.trending(params.requestedStartPosition, params.requestedLoadSize)
+class MainDataSource(private val query: String) : PositionalDataSource<MainItem>() {
+  private fun call(start: Int, size: Int) =
+    if (query.isEmpty()) GiphyApi.instance.trending(start, size)
+    else GiphyApi.instance.search(query, start, size)
+
+  override fun loadInitial(params: LoadInitialParams, callback: LoadInitialCallback<MainItem>) =
+    call(params.requestedStartPosition, params.requestedLoadSize)
       .enqueue(object : Callback<GiphyResult> {
         override fun onFailure(call: Call<GiphyResult>, t: Throwable) {
           callback.onResult(emptyList(), 0) //  TODO Error handling
@@ -30,10 +34,9 @@ class MainDataSource : PositionalDataSource<MainItem>() {
           callback.onResult(items, offset, total)
         }
       })
-  }
 
-  override fun loadRange(params: LoadRangeParams, callback: LoadRangeCallback<MainItem>) {
-    GiphyApi.instance.trending(params.startPosition, params.loadSize)
+  override fun loadRange(params: LoadRangeParams, callback: LoadRangeCallback<MainItem>) =
+    call(params.startPosition, params.loadSize)
       .enqueue(object : Callback<GiphyResult> {
         override fun onFailure(call: Call<GiphyResult>, t: Throwable) {
           callback.onResult(emptyList()) //  TODO Error handling
@@ -51,9 +54,8 @@ class MainDataSource : PositionalDataSource<MainItem>() {
           callback.onResult(items)
         }
       })
-  }
 }
 
-class MainDataSourceFactory : DataSource.Factory<Int, MainItem>() {
-  override fun create(): DataSource<Int, MainItem> = MainDataSource()
+class MainDataSourceFactory(private val query: String) : DataSource.Factory<Int, MainItem>() {
+  override fun create(): DataSource<Int, MainItem> = MainDataSource(query)
 }

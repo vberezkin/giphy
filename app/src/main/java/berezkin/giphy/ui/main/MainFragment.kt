@@ -2,10 +2,12 @@ package berezkin.giphy.ui.main
 
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +22,7 @@ class MainFragment : Fragment() {
   }
 
   private val adapter = MainAdapter()
+  private val viewModel by lazy { ViewModelProviders.of(this).get(MainViewModel::class.java) }
 
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?,
@@ -32,11 +35,17 @@ class MainFragment : Fragment() {
     super.onViewCreated(view, savedInstanceState)
     list.layoutManager = LinearLayoutManager(context)
     list.adapter = adapter
-  }
 
-  override fun onActivityCreated(savedInstanceState: Bundle?) {
-    super.onActivityCreated(savedInstanceState)
-    val viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+    search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+      override fun onQueryTextSubmit(query: String?): Boolean = false
+
+      override fun onQueryTextChange(newText: String?): Boolean {
+        Log.d("MainFragment", "onQueryTextChange $newText")
+        viewModel.query.value = newText ?: ""
+        return true
+      }
+    })
+
     viewModel.items.observe(this, Observer<PagedList<MainItem>> { adapter.submitList(it) })
   }
 }

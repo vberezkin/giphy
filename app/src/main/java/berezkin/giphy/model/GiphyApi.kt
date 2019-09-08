@@ -37,6 +37,9 @@ interface GiphyApi {
   @GET("/v1/gifs/trending")
   fun trending(@Query("offset") offset: Int, @Query("limit") limit: Int): Call<GiphyResult>
 
+  @GET("/v1/gifs/search")
+  fun search(@Query("q") q: String, @Query("offset") offset: Int, @Query("limit") limit: Int): Call<GiphyResult>
+
   companion object {
     private val apiKey = "lIfCpkskRp42stFmyoTMmZITeZ99gWsw"
     private val client = OkHttpClient.Builder().addInterceptor {
