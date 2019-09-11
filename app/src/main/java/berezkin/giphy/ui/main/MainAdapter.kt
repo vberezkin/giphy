@@ -50,7 +50,7 @@ class MainViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
   }
 }
 
-class MainAdapter() : PagedListAdapter<MainItem, MainViewHolder>(comparator) {
+class MainAdapter : PagedListAdapter<MainItem, MainViewHolder>(comparator) {
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainViewHolder =
     MainViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.main_item, parent, false))
 
