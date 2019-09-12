@@ -47,5 +47,6 @@ class MainFragment : Fragment() {
     })
 
     viewModel.items.observe(this, Observer<PagedList<MainItem>> { adapter.submitList(it) })
+    viewModel.progress.observe(this, Observer<Boolean> { adapter.setProgress(it) })
   }
 }

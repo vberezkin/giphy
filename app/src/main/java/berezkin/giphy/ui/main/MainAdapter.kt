@@ -50,12 +50,37 @@ class MainViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
   }
 }
 
-class MainAdapter : PagedListAdapter<MainItem, MainViewHolder>(comparator) {
-  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainViewHolder =
-    MainViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.main_item, parent, false))
+class ProgressViewHolder(view: View) : RecyclerView.ViewHolder(view)
 
-  override fun onBindViewHolder(holder: MainViewHolder, position: Int) =
-    holder.bind(getItem(position))
+class MainAdapter : PagedListAdapter<MainItem, RecyclerView.ViewHolder>(comparator) {
+  private var progress = false
+
+  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    val view = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
+    return when (viewType) {
+      R.layout.main_item -> MainViewHolder(view)
+      R.layout.progress_item -> ProgressViewHolder(view)
+      else -> throw IllegalArgumentException("unknown view type $viewType")
+    }
+  }
+
+  override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = when (holder) {
+    is MainViewHolder -> holder.bind(getItem(position))
+    else -> {
+    }
+  }
+
+  override fun getItemCount(): Int = super.getItemCount() + if (progress) 1 else 0
+
+  override fun getItemViewType(position: Int): Int =
+    if (progress && position == itemCount - 1) R.layout.progress_item else R.layout.main_item
+
+  fun setProgress(value: Boolean) {
+    val old = progress
+    progress = value
+    if (!old && value) notifyItemInserted(super.getItemCount())
+    else if (old && !value) notifyItemRemoved(super.getItemCount())
+  }
 
   companion object {
     val comparator = object : DiffUtil.ItemCallback<MainItem>() {
