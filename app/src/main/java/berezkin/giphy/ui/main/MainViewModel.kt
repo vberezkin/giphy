@@ -16,4 +16,6 @@ class MainViewModel : ViewModel() {
 
   val items = Transformations.switchMap(repoResult) { it.pagedList }
   val progress = Transformations.switchMap(repoResult) { it.progress }
+
+  fun retry() = repoResult.value?.retry?.invoke()
 }

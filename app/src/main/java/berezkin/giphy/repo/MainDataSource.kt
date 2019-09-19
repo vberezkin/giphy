@@ -12,6 +12,7 @@ import retrofit2.Response
 class MainDataSource(private val query: String) : PositionalDataSource<MainItem>() {
 
   val progress = MutableLiveData<Boolean>()
+  private var retry: (() -> Unit)? = null
 
   private fun call(start: Int, size: Int) =
     if (query.isEmpty()) GiphyApi.instance.trending(start, size)
@@ -23,22 +24,27 @@ class MainDataSource(private val query: String) : PositionalDataSource<MainItem>
       .enqueue(object : Callback<GiphyResult> {
         override fun onFailure(call: Call<GiphyResult>, t: Throwable) {
           progress.postValue(false)
-          callback.onResult(emptyList(), 0) //  TODO Error handling
+          retry = { loadInitial(params, callback) }
         }
 
         override fun onResponse(call: Call<GiphyResult>, response: Response<GiphyResult>) {
           progress.postValue(false)
-          val items = response.body()?.data.orEmpty().map {
-            MainItem(
-              it.id,
-              it.title,
-              stillUrl = it.images.fixedSmallStill.url,
-              url = it.images.fixedSmall.url
-            )
+          if (response.isSuccessful) {
+            retry = null
+            val items = response.body()?.data.orEmpty().map {
+              MainItem(
+                it.id,
+                it.title,
+                stillUrl = it.images.fixedSmallStill.url,
+                url = it.images.fixedSmall.url
+              )
+            }
+            val offset = response.body()?.pagination?.offset ?: 0
+            val total = response.body()?.pagination?.totalCount ?: 0
+            callback.onResult(items, offset, total)
+          } else {
+            retry = { loadInitial(params, callback) }
           }
-          val offset = response.body()?.pagination?.offset ?: 0
-          val total = response.body()?.pagination?.totalCount ?: 0
-          callback.onResult(items, offset, total)
         }
       })
   }
@@ -49,22 +55,33 @@ class MainDataSource(private val query: String) : PositionalDataSource<MainItem>
       .enqueue(object : Callback<GiphyResult> {
         override fun onFailure(call: Call<GiphyResult>, t: Throwable) {
           progress.postValue(false)
-          callback.onResult(emptyList()) //  TODO Error handling
+          retry = { loadRange(params, callback) }
         }
 
         override fun onResponse(call: Call<GiphyResult>, response: Response<GiphyResult>) {
           progress.postValue(false)
-          val items = response.body()?.data.orEmpty().map {
-            MainItem(
-              it.id,
-              it.title,
-              stillUrl = it.images.fixedSmallStill.url,
-              url = it.images.fixedSmall.url
-            )
+          if (response.isSuccessful) {
+            retry = null
+            val items = response.body()?.data.orEmpty().map {
+              MainItem(
+                it.id,
+                it.title,
+                stillUrl = it.images.fixedSmallStill.url,
+                url = it.images.fixedSmall.url
+              )
+            }
+            callback.onResult(items)
+          } else {
+            retry = { loadRange(params, callback) }
           }
-          callback.onResult(items)
         }
       })
+  }
+
+  fun retryFailed() {
+    val prev = retry
+    retry = null
+    prev?.invoke()
   }
 }
 
